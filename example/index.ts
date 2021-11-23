@@ -1,5 +1,5 @@
 import express from 'express'
-import { Jobz, JobzDash } from '../src'
+import { Jobz, JobzDashboardExpress } from '../src'
 import { AnotherJob } from './AnotherJob'
 import { ErrorJob } from './ErrorJob'
 import { ExampleJob } from './ExampleJob'
@@ -29,7 +29,7 @@ import { TMDBFetcherJob } from './TMDBFetcherJob'
 
   // scheduler.register('icatu:example-job', `${__dirname}/ExampleJob.ts`)
   // scheduler.register('icatu:another-job', `${__dirname}/AnotherJob.ts`)
-  
+
   // await scheduler.schedule(new ErrorJob).every(5).minutes()
 
   // await scheduler.every(5).minutes().run(ErrorJob)
@@ -55,15 +55,15 @@ import { TMDBFetcherJob } from './TMDBFetcherJob'
   // await scheduler.schedule('every 5 seconds', new ErrorJob)
 
   // await scheduler.schedule('every 15 minutes', new ErrorJob)
-  
+
   // await scheduler.schedule('every thursday 13:39', new ErrorJob)
 
   // await scheduler.schedule('every 5 minutes', new ExampleJob)
-  
+
   // await scheduler.schedule('every day 16:00', new AnotherJob)
 
   await jobz.start()
 
-  app.use('/jobz', JobzDash(jobz))
+  app.use('/jobz', JobzDashboardExpress(jobz))
   app.listen(3000)
 })()

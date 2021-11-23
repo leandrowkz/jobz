@@ -6,13 +6,13 @@ import { JobModel, JobExecutionModel } from './models'
 import {
   JobDispatcherConstructorPayload,
   JobExecutionStatus,
-  JobzQueueListenerMode,
+  JobQueueListenerMode,
 } from './types'
 
 export class JobDispatcher {
   protected connection: Connection
   protected register: JobRegister
-  protected queueListenerMode: JobzQueueListenerMode
+  protected queueListenerMode: JobQueueListenerMode
   protected pollingInterval: number
 
   constructor(payload: JobDispatcherConstructorPayload) {
@@ -27,21 +27,21 @@ export class JobDispatcher {
    * When a job is inserted in collection then dispatches it.
    */
   public async startListenQueue(): Promise<void> {
-    if (this.queueListenerMode === JobzQueueListenerMode.Listener) {
+    if (this.queueListenerMode === JobQueueListenerMode.Listener) {
       const { mongoManager } = this.connection
       const pipeline = [{ $match: { operationType: 'insert' } }]
       const stream = mongoManager.watch(JobExecutionModel, pipeline)
 
       stream.on('change', async (data: { documentKey: { _id: string } }) => {
         const exec = await JobExecutionModel.findOne(data.documentKey._id)
-        
+
         if (!exec) return;
 
         this.dispatch(exec)
       })
     }
 
-    if (this.queueListenerMode === JobzQueueListenerMode.Polling) {
+    if (this.queueListenerMode === JobQueueListenerMode.Polling) {
       setInterval(() => {
         this.processAllPendingJobs()
       }, this.pollingInterval)
@@ -68,7 +68,7 @@ export class JobDispatcher {
   /**
    * Runs a given JobExecution enqueued.
    * Find handler by name and trigger run for it.
-   * 
+   *
    * @param execution
    */
   public async dispatch (execution: JobExecutionModel): Promise<void> {
@@ -78,15 +78,15 @@ export class JobDispatcher {
 
     const job = this.register.getHandler(execution.name)
     const model = await JobModel.findByName(execution.name)
-  
+
     if (!job || !model) {
       return
     }
 
     const interceptOutput = createOutputInterceptor()
-    
+
     await interceptOutput(async () => {
-      try {  
+      try {
         model.runningCount = model.runningCount + 1
         await model.save()
 
@@ -104,7 +104,7 @@ export class JobDispatcher {
 
         execution.status = JobExecutionStatus.Failed
         await execution.save()
-        
+
       } finally {
         model.runningCount = model.runningCount - 1
         model.lastRunAt = new Date

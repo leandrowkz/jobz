@@ -1,14 +1,15 @@
 import { Connection, FindManyOptions } from 'typeorm'
 import { JobModel, JobExecutionModel } from './models'
 import {
-  JobExecutionStatus,
-  JobExecutionTrigger,
-  JobStatus,
   JobAPIRequestList,
   JobAPIResponseAdapter,
+  JobAPIResponseCode,
   JobAPIResponseDetails,
   JobAPIResponseList,
   JobAPIServiceConstructorPayload,
+  JobExecutionStatus,
+  JobExecutionTrigger,
+  JobStatus,
 } from './types'
 
 export class JobAPIService {
@@ -37,12 +38,12 @@ export class JobAPIService {
         status: 'DESC'
       },
       take: pageSize,
-      skip: pageSize <= 1 ? 0 : (currentPage * pageSize),
+      skip: currentPage <= 1 ? 0 : (currentPage * pageSize),
     }
 
     const [list, count] = await JobModel.findAndCount(options)
 
-    return this.toResponseList<JobModel>({
+    return this.toResponseList({
       list,
       count,
       pageSize,
@@ -74,12 +75,12 @@ export class JobAPIService {
       select: JobExecutionModel.QUERY_COLUMNS,
       where: { name: job.name },
       take: pageSize,
-      skip: pageSize <= 1 ? 0 : (currentPage * pageSize),
+      skip: currentPage <= 1 ? 0 : (currentPage * pageSize),
     }
 
     const [list, count] = await JobExecutionModel.findAndCount(options)
 
-    return this.toResponseList<JobExecutionModel>({
+    return this.toResponseList({
       list,
       count,
       pageSize,
@@ -93,24 +94,14 @@ export class JobAPIService {
    * @param string
    * @returns JobModel
    */
-  public async getJobDetails(id: string): Promise<JobModel | undefined> {
+  public async getJobDetails(id: string): Promise<JobAPIResponseDetails<JobModel>> {
     const job = await JobModel.findOne(id)
 
     if (!job) {
       throw Error('Error fetching Job details: Job not found.')
     }
 
-    job.executions = await JobExecutionModel.find({
-      where: {
-        name: job.name,
-      },
-      select: [
-        ...JobExecutionModel.QUERY_COLUMNS,
-        'output',
-      ]
-    })
-
-    return job
+    return this.toResponseDetails(job)
   }
 
   /**
@@ -119,7 +110,7 @@ export class JobAPIService {
    * @param string
    * @returns JobExecutionModel
    */
-  public async getJobExecutionDetails(id: string): Promise<JobExecutionModel | undefined> {
+  public async getJobExecutionDetails(id: string): Promise<JobAPIResponseDetails<JobExecutionModel>> {
     const execution = await JobExecutionModel.findOne(id)
 
     if (!execution) {
@@ -128,7 +119,7 @@ export class JobAPIService {
 
     execution.job = await JobModel.findOne({ name: execution.name })
 
-    return execution
+    return this.toResponseDetails(execution)
   }
 
   /**
@@ -138,7 +129,7 @@ export class JobAPIService {
    * @param JobStatus
    * @returns JobModel
    */
-   public async setJobStatus(id: string, status: JobStatus): Promise<JobModel> {
+   public async setJobStatus(id: string, status: JobStatus): Promise<JobAPIResponseDetails<JobModel>> {
     const job = await JobModel.findOne(id)
 
     if (!job) {
@@ -148,7 +139,7 @@ export class JobAPIService {
     job.status = status
     await job.save()
 
-    return job
+    return this.toResponseDetails(job)
   }
 
   /**
@@ -157,7 +148,7 @@ export class JobAPIService {
    * @param id
    * @return JobModel
    */
-   public async runJobManually(id: string): Promise<JobModel> {
+   public async runJobManually(id: string): Promise<JobAPIResponseDetails<JobModel>> {
     const job = await JobModel.findOne(id)
 
     if (!job) {
@@ -172,7 +163,10 @@ export class JobAPIService {
     // Job listener will intercept this and dispatch job
     await exec.save()
 
-    return job
+    const response = this.toResponseDetails(job)
+    response.status = JobAPIResponseCode.Enqueued
+
+    return response
   }
 
   /**
@@ -185,7 +179,8 @@ export class JobAPIService {
     const { list, count, currentPage, pageSize } = payload
 
     const response: JobAPIResponseList<T> = {
-      data: [],
+      status: JobAPIResponseCode.Success,
+      data: list,
       meta: {
         count: 0,
         pagination: {
@@ -200,9 +195,9 @@ export class JobAPIService {
 
     response.data = list
     response.meta.count = count
-    response.meta.pagination.pages = Math.floor(count / pageSize)
+    response.meta.pagination.pages = Math.ceil(count / pageSize)
     response.meta.pagination.next = (currentPage + 1) > response.meta.pagination.pages ? response.meta.pagination.pages : (currentPage + 1)
-    response.meta.pagination.prev = (currentPage - 1) <= 0 ? 1 : (currentPage - 1)
+    response.meta.pagination.prev = (currentPage - 1) <= 0 || currentPage > response.meta.pagination.pages ? 1 : (currentPage - 1)
 
     return response
   }
@@ -215,8 +210,8 @@ export class JobAPIService {
    */
    protected toResponseDetails<T>(item: T): JobAPIResponseDetails<T> {
     return {
+      status: JobAPIResponseCode.Success,
       data: item,
-      status: 200,
     }
   }
 

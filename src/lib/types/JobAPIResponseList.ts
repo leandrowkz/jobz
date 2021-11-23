@@ -1,4 +1,7 @@
+import { JobAPIResponseCode } from './JobAPIResponseCode'
+
 export type JobAPIResponseList<T> = {
+  status: JobAPIResponseCode
   data: T[],
   meta: {
     count: number,
