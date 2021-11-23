@@ -1,0 +1,11 @@
+.app-header {
+  width: 100%;
+  height: var(--header-height);
+  background: var(--brand-color);
+  color: var(--text-color-negative);
+  padding: 0 var(--spacer-lg);
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 0;
+}

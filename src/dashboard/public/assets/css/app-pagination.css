@@ -1,0 +1,58 @@
+.app-pagination {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 1px;
+  overflow: auto;
+}
+
+.app-pagination .block {
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 48px;
+  border: 1px solid var(--border-color);
+  margin-left: -1px;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.app-pagination .block.current {
+  position: relative;
+  z-index: 1;
+  background: var(--brand-color) !important;
+  color: white !important;
+  border-color: var(--brand-color) !important;
+}
+
+.app-pagination .block.disabled {
+  color: var(--text-muted);
+  pointer-events: none;
+  cursor: not-allowed !important;
+}
+
+
+.app-pagination .block.control {
+  padding: 0 var(--spacer-sm);
+}
+
+.app-pagination .block:hover {
+  background: var(--bg-color-hover);
+}
+
+.app-pagination .block:first-child {
+  border-top-left-radius: var(--radius-base);
+  border-bottom-left-radius: var(--radius-base);
+}
+
+.app-pagination .block:last-child {
+  border-top-right-radius: var(--radius-base);
+  border-bottom-right-radius: var(--radius-base);
+}
+
+.app-pagination .block.active {
+  border-top-right-radius: var(--radius-base);
+  border-bottom-right-radius: var(--radius-base);
+}

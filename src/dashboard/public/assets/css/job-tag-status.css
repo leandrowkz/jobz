@@ -1,0 +1,30 @@
+.job-tag-status {
+  display: inline-block;
+  width: auto;
+  border-radius: 100px;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 2px var(--spacer-sm);
+  font-size: var(--text-size-sm);
+  background: var(--bg-color-muted);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.job-tag-status-done {
+  background: var(--success-color-bg);
+  color: var(--success-color);
+}
+
+.job-tag-status-failed {
+  background: var(--danger-color-bg);
+  color: var(--danger-color);
+  cursor: help;
+}
+
+.job-tag-status-running {
+  background: var(--info-color-bg);
+  color: var(--info-color);
+  animation: pulse-info 2s infinite;
+  box-shadow: 0 0 0 rgba(var(--info-color-rgb), 0.4);
+}

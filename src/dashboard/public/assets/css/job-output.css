@@ -1,0 +1,10 @@
+.job-output {
+  background: var(--bg-color-primary-negative);
+  color: var(--text-color-negative);
+  margin: 0;
+  padding: var(--spacer-md);
+  overflow: auto;
+  font-size: var(--text-size-sm);
+  font-family: var(--font-family-mono);
+  line-height: 1.8;
+}

@@ -1,0 +1,7 @@
+.view-dashboard .app-content {
+  margin-top: var(--header-height);
+}
+
+.view-dashboard .app-pagination {
+  margin-top: var(--spacer-lg);
+}
