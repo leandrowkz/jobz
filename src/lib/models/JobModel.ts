@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { JobStatus } from '../types';
+import { JobExecutionModel } from './JobExecutionModel';
 
 @Entity({ name: 'Jobs' })
 export class JobModel extends BaseEntity {
@@ -43,6 +44,9 @@ export class JobModel extends BaseEntity {
 
   @Column()
   lastRunAt!: Date;
+
+  @Column()
+  executions?: JobExecutionModel[];
 
   static async findByName(name: string): Promise<JobModel | undefined> {
     return this.findOne({ name })

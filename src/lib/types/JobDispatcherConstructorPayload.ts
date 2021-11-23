@@ -1,12 +1,12 @@
 import { Connection } from 'typeorm'
 import { JobRegister } from '../JobRegister'
-import { JobzQueueListenerMode } from './JobzQueueListenerMode'
+import { JobQueueListenerMode } from './JobQueueListenerMode'
 
 export type JobDispatcherConstructorPayload = {
   connection: Connection,
   register: JobRegister,
   options: {
     pollingInterval: number,
-    queueListenerMode: JobzQueueListenerMode,
+    queueListenerMode: JobQueueListenerMode,
   },
 }

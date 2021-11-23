@@ -1,10 +1,11 @@
 import { createConnection, Connection } from 'typeorm'
 import { Job } from './Job'
+import { JobAPIService } from './JobAPIService'
 import { JobDispatcher } from './JobDispatcher'
 import { JobScheduler } from './JobScheduler'
 import { JobRegister } from './JobRegister'
 import { JobModel, JobExecutionModel } from './models'
-import { JobzOptions, JobzQueueListenerMode } from './types'
+import { JobzOptions, JobQueueListenerMode } from './types'
 
 export class Jobz {
   protected optionsDefault: JobzOptions = {
@@ -15,13 +16,14 @@ export class Jobz {
     },
     maxConcurrency: 1,
     pollingInterval: 1000,
-    queueListenerMode: JobzQueueListenerMode.Default,
+    queueListenerMode: JobQueueListenerMode.Default,
   }
   protected options: JobzOptions
   protected connection!: Connection
   protected registry!: JobRegister
   protected scheduler!: JobScheduler
   protected dispatcher!: JobDispatcher
+  public api!: JobAPIService
 
   public constructor(options: JobzOptions) {
     this.options = { ...this.optionsDefault, ...options }
@@ -29,7 +31,7 @@ export class Jobz {
 
   /**
    * Initialize Jobz.
-   * 
+   *
    * Make a database connection based on constructor options.
    * Make a new JobRegister instance.
    * Make a new JobScheduler instance.
@@ -45,7 +47,7 @@ export class Jobz {
       username,
       password,
     } = this.options.db
-    
+
     this.connection = await createConnection({
       type: 'mongodb',
       host: host,
@@ -58,10 +60,11 @@ export class Jobz {
         JobExecutionModel,
       ],
     })
-    
+
     await this.initRegister()
     await this.initScheduler()
     await this.initDispatcher()
+    await this.initServiceAPI()
   }
 
   /**
@@ -109,8 +112,18 @@ export class Jobz {
   }
 
   /**
+   * Initialize JobzServiceAPI instance, responsible for
+   * being an interface for querying Jobs and JobExecutions.
+   */
+   protected async initServiceAPI(): Promise<void> {
+    this.api = new JobAPIService({
+      connection: this.connection
+    })
+  }
+
+  /**
    * Start Jobz.
-   * 
+   *
    * 1) Process all pending Jobs
    * 2) Start listening to new enqueued Jobs
    */
@@ -122,9 +135,9 @@ export class Jobz {
   /**
    * Register a new Job on DB and associates a Job instance
    * as handler to it.
-   * 
-   * @param jobName 
-   * @param jobInstance 
+   *
+   * @param jobName
+   * @param jobInstance
    */
   public async register(jobName: string, jobInstance: Job): Promise<void> {
     return this.registry.register(jobName, jobInstance)
@@ -132,9 +145,9 @@ export class Jobz {
 
   /**
    * Schedule a Job execution based on cron expression.
-   * 
-   * @param cron 
-   * @param jobName 
+   *
+   * @param cron
+   * @param jobName
    */
   public async schedule(cron: string, jobName: string): Promise<void> {
     return this.scheduler.schedule(cron, jobName)

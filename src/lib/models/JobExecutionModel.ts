@@ -8,9 +8,20 @@ import {
   UpdateDateColumn,
 } from 'typeorm'
 import { JobExecutionStatus, JobExecutionTrigger } from '../types';
+import { JobModel } from './JobModel';
 
 @Entity({ name: 'JobsExecution' })
 export class JobExecutionModel extends BaseEntity {
+  static QUERY_COLUMNS: (keyof JobExecutionModel)[] = [
+    'id',
+    'name',
+    'status',
+    'trigger',
+    'scheduleRule',
+    'startedAt',
+    'finishedAt',
+  ]
+
   @CreateDateColumn()
   createdAt!: Date
 
@@ -43,7 +54,7 @@ export class JobExecutionModel extends BaseEntity {
 
   @Column()
   durationMs?: number;
-  
+
   @Column({ default: 0 })
   retries!: number;
 
@@ -52,4 +63,7 @@ export class JobExecutionModel extends BaseEntity {
 
   @Column()
   failReason?: string;
+
+  @Column()
+  job?: JobModel;
 }

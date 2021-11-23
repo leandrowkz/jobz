@@ -1,4 +1,4 @@
-import { JobzQueueListenerMode } from './JobzQueueListenerMode';
+import { JobQueueListenerMode } from './JobQueueListenerMode';
 
 export type JobzOptions = {
   db: {
@@ -9,6 +9,6 @@ export type JobzOptions = {
     password?: string
   },
   maxConcurrency?: number,
-  queueListenerMode?: JobzQueueListenerMode,
+  queueListenerMode?: JobQueueListenerMode,
   pollingInterval?: number,
 }
